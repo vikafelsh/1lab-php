@@ -1,0 +1,191 @@
+@startuml
+title Інтернет-блог кулінарних рецептів — UML-діаграма класів
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+skinparam nodesep 38
+skinparam ranksep 65
+left to right direction
+hide empty members
+
+package "Моделі даних (Model)" {
+class User {
+  +id: int
+  +name: String
+  +email: String
+  -passwordHash: String
+  +role: String
+  --
+  +register(name: String, email: String, password: String): bool
+  +authenticate(email: String, password: String): bool
+  +createRecipe(title: String): Recipe
+  +addFavorite(recipeId: int): bool
+  +getRecipes(): List<Recipe>
+}
+class Recipe {
+  +id: int
+  +userId: int
+  +categoryId: int
+  +title: String
+  +status: String
+  --
+  +save(): bool
+  +updateDetails(title: String, description: String): bool
+  +submitForReview(): bool
+  +publish(): bool
+  +calculateRating(): float
+}
+class Category {
+  +id: int
+  +name: String
+  +slug: String
+  +description: String
+  +isActive: bool
+  --
+  +save(): bool
+  +rename(name: String): bool
+  +changeSlug(slug: String): bool
+  +getRecipes(): List<Recipe>
+  +deactivate(): bool
+}
+class Ingredient {
+  +id: int
+  +name: String
+  +defaultUnit: String
+  +description: String
+  +isActive: bool
+  --
+  +save(): bool
+  +rename(name: String): bool
+  +setDefaultUnit(unit: String): bool
+  +findByName(query: String): List<Ingredient>
+  +deactivate(): bool
+}
+class RecipeIngredient {
+  +id: int
+  +recipeId: int
+  +ingredientId: int
+  +quantity: float
+  +unit: String
+  --
+  +save(): bool
+  +setQuantity(value: float): bool
+  +setUnit(unit: String): bool
+  +getIngredient(): Ingredient
+  +delete(): bool
+}
+class RecipeStep {
+  +id: int
+  +recipeId: int
+  +stepNumber: int
+  +description: String
+  +imagePath: String
+  --
+  +save(): bool
+  +setDescription(text: String): bool
+  +reorder(position: int): bool
+  +attachImage(path: String): bool
+  +delete(): bool
+}
+class Comment {
+  +id: int
+  +userId: int
+  +recipeId: int
+  +content: String
+  +status: String
+  --
+  +save(): bool
+  +edit(content: String): bool
+  +approve(): bool
+  +reject(reason: String): bool
+  +delete(): bool
+}
+class Rating {
+  +id: int
+  +userId: int
+  +recipeId: int
+  +value: int
+  +createdAt: DateTime
+  --
+  +save(): bool
+  +setValue(value: int): bool
+  +isValid(): bool
+  +getUser(): User
+  +delete(): bool
+}
+class Favorite {
+  +id: int
+  +userId: int
+  +recipeId: int
+  +createdAt: DateTime
+  +note: String
+  --
+  +save(): bool
+  +setNote(note: String): bool
+  +getRecipe(): Recipe
+  +belongsToUser(userId: int): bool
+  +delete(): bool
+}
+}
+package "Контролери (Controller)" {
+class BaseController {
+  #currentUserId: int
+  #locale: String
+  #requestId: String
+  #defaultPageSize: int
+  #auditEnabled: bool
+  --
+  +authorize(userId: int, action: String): bool
+  +validate(data: Map, rules: Map): bool
+  +success(data: Map): Response
+  +error(message: String, status: int): Response
+  +paginate(page: int, size: int): Map
+}
+class RecipeController {
+  -recipeModel: Recipe
+  -categoryModel: Category
+  -ingredientModel: Ingredient
+  -defaultStatus: String
+  -maxImageSizeMb: int
+  --
+  +index(query: String, page: int): Response
+  +show(id: int): Response
+  +store(data: Map): Response
+  +update(id: int, data: Map): Response
+  +destroy(id: int): Response
+}
+class CommentController {
+  -commentModel: Comment
+  -ratingModel: Rating
+  -recipeModel: Recipe
+  -maxContentLength: int
+  -moderationEnabled: bool
+  --
+  +store(recipeId: int, data: Map): Response
+  +update(id: int, content: String): Response
+  +destroy(id: int): Response
+  +approve(id: int): Response
+  +reject(id: int, reason: String): Response
+}
+}
+
+' Асоціація, агрегація, композиція, наслідування
+User "1" -- "0..*" Recipe : створює
+Category "1" o-- "0..*" Recipe : групує
+Recipe "1" *-- "1..*" RecipeStep : містить кроки
+Recipe "1" *-- "1..*" RecipeIngredient : містить склад
+Ingredient "1" -- "0..*" RecipeIngredient : використовується
+User "1" -- "0..*" Comment : пише
+Recipe "1" -- "0..*" Comment : має
+User "1" -- "0..*" Rating : оцінює
+Recipe "1" -- "0..*" Rating : отримує
+User "1" -- "0..*" Favorite : зберігає
+Recipe "1" -- "0..*" Favorite : додається
+RecipeController --> Recipe : керує
+RecipeController --> Category : використовує
+CommentController --> Comment : керує
+CommentController --> Rating : керує
+RecipeController --|> BaseController : наслідує
+CommentController --|> BaseController : наслідує
+@enduml

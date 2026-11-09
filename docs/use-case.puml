@@ -1,0 +1,193 @@
+@startuml
+' Лабораторна 2, етап 4. Рівно 10 класів: 8 моделей + 2 контролери.
+top to bottom direction
+skinparam nodesep 65
+skinparam ranksep 85
+skinparam packageStyle rectangle
+skinparam ArrowFontSize 11
+skinparam backgroundColor white
+skinparam shadowing false
+skinparam classAttributeIconSize 0
+skinparam linetype ortho
+hide circle
+
+package "Models (Eloquent)" {
+class User {
+  +id: int
+  +name: string
+  +email: string
+  +password: string
+  +role: string
+  --
+  +register(name: string, email: string, password: string): bool
+  +login(email: string, password: string): bool
+  +updateProfile(name: string): bool
+  +addFavorite(recipeId: int): bool
+  +removeFavorite(recipeId: int): bool
+}
+
+class Recipe {
+  +id: int
+  +userId: int
+  +categoryId: int
+  +title: string
+  +status: string
+  --
+  +create(title: string, categoryId: int): bool
+  +updateTitle(title: string): bool
+  +submitForReview(): bool
+  +publish(): bool
+  +delete(): bool
+}
+
+class Category {
+  +id: int
+  +name: string
+  +description: string
+  +slug: string
+  +createdAt: datetime
+  --
+  +create(name: string): bool
+  +rename(name: string): bool
+  +updateDescription(text: string): bool
+  +getRecipes(): List<Recipe>
+  +delete(): bool
+}
+
+class Ingredient {
+  +id: int
+  +name: string
+  +unit: string
+  +description: string
+  +createdAt: datetime
+  --
+  +create(name: string, unit: string): bool
+  +rename(name: string): bool
+  +updateUnit(unit: string): bool
+  +findByName(name: string): Ingredient
+  +delete(): bool
+}
+
+class RecipeStep {
+  +id: int
+  +recipeId: int
+  +stepNumber: int
+  +description: string
+  +imagePath: string
+  --
+  +create(recipeId: int, text: string): bool
+  +updateText(text: string): bool
+  +setOrder(number: int): bool
+  +setImage(path: string): bool
+  +delete(): bool
+}
+
+class Comment {
+  +id: int
+  +userId: int
+  +recipeId: int
+  +content: string
+  +status: string
+  --
+  +create(recipeId: int, text: string): bool
+  +edit(text: string): bool
+  +approve(): bool
+  +reject(): bool
+  +delete(): bool
+}
+
+class Rating {
+  +id: int
+  +userId: int
+  +recipeId: int
+  +value: int
+  +createdAt: datetime
+  --
+  +create(recipeId: int, value: int): bool
+  +update(value: int): bool
+  +isValid(value: int): bool
+  +getValue(): int
+  +delete(): bool
+}
+
+class Favorite {
+  +id: int
+  +userId: int
+  +recipeId: int
+  +createdAt: datetime
+  +note: string
+  --
+  +add(userId: int, recipeId: int): bool
+  +remove(): bool
+  +exists(userId: int, recipeId: int): bool
+  +setNote(note: string): bool
+  +getRecipe(): Recipe
+}
+}
+
+package "Controllers (MVC)" {
+abstract class BaseController {
+  #requestId: string
+  #locale: string
+  #userId: int
+  #errorMessage: string
+  #statusCode: int
+  --
+  +authorize(userId: int): bool
+  +validate(data: Map): bool
+  +success(data: Map): Response
+  +error(message: string): Response
+  +redirect(path: string): Response
+}
+
+class RecipeController {
+  +currentUserId: int
+  +page: int
+  +pageSize: int
+  +sortBy: string
+  +statusFilter: string
+  --
+  +index(page: int): Response
+  +show(id: int): Response
+  +store(data: Map): Response
+  +update(id: int, data: Map): Response
+  +destroy(id: int): Response
+}
+}
+
+
+' Орієнтовне розташування: два рядки моделей та блок контролерів знизу.
+' Приховані ребра задають порядок, але не відображаються на рисунку.
+Category -[hidden]right- Ingredient
+Ingredient -[hidden]right- User
+User -[hidden]right- Favorite
+RecipeStep -[hidden]right- Recipe
+Recipe -[hidden]right- Comment
+Comment -[hidden]right- Rating
+Category -[hidden]down- RecipeStep
+Ingredient -[hidden]down- Recipe
+User -[hidden]down- Comment
+Favorite -[hidden]down- Rating
+Recipe -[hidden]down- RecipeController
+RecipeController -[hidden]right- BaseController
+
+' Асоціації
+User "1" -- "0..*" Recipe : creates
+Recipe "0..*" -- "0..*" Ingredient : uses
+Recipe "1" -- "0..*" Comment : has
+User "1" -- "0..*" Comment : writes
+User "1" -- "0..*" Rating : gives
+User "1" -- "0..*" Favorite : saves
+
+' Агрегація: категорія групує рецепти
+Category "1" o-- "0..*" Recipe : groups
+
+' Композиція: кроки належать конкретному рецепту
+Recipe "1" *-- "1..*" RecipeStep : contains
+
+' Залежність контролера від моделі
+RecipeController ..> Recipe : manages
+
+' Наслідування контролера
+RecipeController --|> BaseController : inherits
+@enduml
