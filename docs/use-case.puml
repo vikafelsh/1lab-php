@@ -1,5 +1,4 @@
 @startuml
-' Лабораторна 2, етап 4. Рівно 10 класів: 8 моделей + 2 контролери.
 top to bottom direction
 skinparam nodesep 65
 skinparam ranksep 85
