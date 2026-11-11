@@ -1,8 +1,11 @@
 
 <?php
+
+use Faker\Factory;
+
 require_once 'vendor/autoload.php';
 
-$faker = Faker\Factory::create();
+$faker = Factory::create();
 
 $times = [];
 
@@ -29,11 +32,9 @@ try {
     echo "\nСпробу розрахунку завершено.";
 }
 
-
 require_once 'app/Services/DataProcessor.php';
 
-echo "\nМінімальна цифра: " . minDigit(1234076);
-echo "\nПереставлені слова: " . swapWords('I love cooking');
+echo "\nМінімальна цифра: ".minDigit(1234076);
+echo "\nПереставлені слова: ".swapWords('I love cooking');
 echo "\nСимволи впорядковані: ";
 var_dump(isSorted('abcde'));
-

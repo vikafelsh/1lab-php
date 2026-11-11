@@ -8,21 +8,21 @@ $recipe = [
     'userId' => 1,
     'categoryId' => 2,
     'title' => 'Vegetable Soup',
-    'status' => 'published'
+    'status' => 'published',
 ];
 ?>
 
 <h2>Recipe Categories</h2>
 <ul>
-    <?php foreach ($categories as $category): ?>
+    <?php foreach ($categories as $category) { ?>
         <li><?= htmlspecialchars($category) ?></li>
-    <?php endforeach; ?>
+    <?php } ?>
 </ul>
 
 <h2>Recipe Information</h2>
 <ul>
-    <?php foreach ($recipe as $key => $value): ?>
-        <li><?= htmlspecialchars($key) ?>: <?= htmlspecialchars((string)$value) ?></li>
-    <?php endforeach; ?>
+    <?php foreach ($recipe as $key => $value) { ?>
+        <li><?= htmlspecialchars($key) ?>: <?= htmlspecialchars((string) $value) ?></li>
+    <?php } ?>
 </ul>
 
